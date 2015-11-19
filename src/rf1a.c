@@ -1,12 +1,71 @@
 
-#include "rf1a.h"
-#include "cc430x513x.h"
+#include "main.h"
+
+
+const uint8_t rf1a_regs_config[ RF1A_REGS_CONF_SIZE ] =
+{
+    SMARTRF_IOCFG2,     /* IOCFG2: GDO2 signals on RF_RDYn */
+    SMARTRF_IOCFG1,     /* IOCFG1: GDO1 signals on RSSI_VALID */
+    SMARTRF_IOCFG0,     /* IOCFG0: GDO0 signals on PA power down signal to
+                           control RX/TX switch */
+    SMARTRF_FIFOTHR,    /* FIFOTHR: RX/TX FIFO threshold: 33 bytes in TX, 32
+                           bytes in RX */
+    SMARTRF_SYNC1,      /* SYNC1: High byte of sync word */
+    SMARTRF_SYNC0,      /* SYNC0: Low byte of sync word */
+    SMARTRF_PKTLEN,     /* PKTLEN: Packet length in fixed mode, maximum length
+                           in variable-length mode */
+    SMARTRF_PKTCTRL1,   /* PKTCTRL1: No status bytes appended to the packet */
+    SMARTRF_PKTCTRL0,   /* PKTCTRL0: Fixed-Length Mode, No CRC */
+    SMARTRF_ADDR,       /* ADDR: Address for packet filtration */
+    SMARTRF_CHANNR,     /* CHANNR: 8-bit channel number,
+                           freq = base freq + CHANNR * channel spacing */
+    SMARTRF_FSCTRL1,    /* FSCTRL1: Frequency Synthesizer Control */
+    SMARTRF_FSCTRL0,    /* FSCTRL0: Frequency Synthesizer Control */
+    SMARTRF_FREQ2,      /* FREQ2: Base frequency, high byte */
+    SMARTRF_FREQ1,      /* FREQ1: Base frequency, middle byte */
+    SMARTRF_FREQ0,      /* FREQ0: Base frequency, low byte */
+    SMARTRF_MDMCFG4,    /* MDMCFG4: Modem configuration */
+    SMARTRF_MDMCFG3,    /* MDMCFG3:                "                      " */
+    SMARTRF_MDMCFG2,    /* MDMCFG2:                "                      " */
+    SMARTRF_MDMCFG1,    /* MDMCFG1:                "                      " */
+    SMARTRF_MDMCFG0,    /* MDMCFG0:                "                      " */
+    SMARTRF_DEVIATN,    /* DEVIATN: Modem deviation setting */
+    SMARTRF_MCSM2,      /* MCSM2: Main radio control state machine
+                           conf. : timeout for sync word search disabled */
+    SMARTRF_MCSM1,      /* MCSM1: CCA signals when RSSI below threshold, stay
+                           in RX after packet has been received */
+    SMARTRF_MCSM0,      /* MCSM0: Auto-calibrate when going from IDLE to RX
+                           or TX (or FSTXON ) */
+    SMARTRF_FOCCFG,     /* FOCCFG: Frequency offset compensation conf. */
+    SMARTRF_BSCFG,      /* BSCFG: Bit synchronization conf. */
+    SMARTRF_AGCCTRL2,   /* AGCCTRL2: AGC Control */
+    SMARTRF_AGCCTRL1,   /* AGCCTRL1:     " */
+    SMARTRF_AGCCTRL0,   /* AGCCTRL0:     " */
+    SMARTRF_WOREVT1,    /* WOREVT1: High byte Event0 timeout */
+    SMARTRF_WOREVT0,    /* WOREVT0: High byte Event0 timeout */
+    SMARTRF_WORCTRL,    /* WORCTL: Wave on radio control ****Feature
+                           unavailable in PG0.6**** */
+    SMARTRF_FREND1,     /* FREND1: Front end RX conf. */
+    SMARTRF_FREND0,     /* FREND0: Front end TX conf. */
+    SMARTRF_FSCAL3,     /* FSCAL3: Frequency synthesizer calibration */
+    SMARTRF_FSCAL2,     /* FSCAL2:              " */
+    SMARTRF_FSCAL1,     /* FSCAL1:              " */
+    SMARTRF_FSCAL0,     /* FSCAL0:              " */
+    0x00,               /* Reserved *read as 0* */
+    0x00,               /* Reserved *read as 0* */
+    SMARTRF_FSTEST,     /* FSTEST: Irrelevant for normal use case */
+    SMARTRF_PTEST,      /* PTEST: Irrelevant for normal use case */
+    SMARTRF_AGCTEST,    /* AGCTEST: Irrelevant for normal use case */
+    SMARTRF_TEST2,      /* TEST2: Irrelevant for normal use case */
+    SMARTRF_TEST1,      /* TEST1: Irrelevant for normal use case */
+    SMARTRF_TEST0       /* TEST0: Irrelevant for normal use case */
+};
 
 
 /* Read a single byte from the radio register. */
-unsigned char read_single_reg( unsigned char addr )
+uint8_t read_single_reg( uint8_t addr )
 {
-    unsigned char data_out;
+    uint8_t data_out;
 
 
     /* Check for valid configuration register address, 0x3E refers to PATABLE */
@@ -28,11 +87,9 @@ unsigned char read_single_reg( unsigned char addr )
 }
 
 /* Read multiple bytes to the radio registers. */
-void read_burst_reg( unsigned char addr,
-                     unsigned char* buffer,
-                     unsigned char count )
+void read_burst_reg( uint8_t addr, uint8_t* buffer, uint8_t count )
 {
-    unsigned int i;
+    uint8_t i;
     
     if( count > 0 ) {
         /* Wait for INSTRIFG. */
@@ -61,7 +118,7 @@ void read_burst_reg( unsigned char addr,
 }
 
 /* Write a single byte to a radio register. */
-void write_single_reg( unsigned char addr, unsigned char value )
+void write_single_reg( uint8_t addr, uint8_t value )
 {
     /* Wait for the Radio to be ready for next instruction. */
     while( !( RF1AIFCTL1 & RFINSTRIFG ) ) {
@@ -71,15 +128,13 @@ void write_single_reg( unsigned char addr, unsigned char value )
     RF1AINSTRB = ( addr | RF_SNGLREGWR );   /* Send address + instruction. */
     RF1ADINB = value;                       /* Write data in. */
 
-    __no_operation( ); 
+    _NOP( ); 
 }
 
 /* Write multiple bytes to the radio registers. */
-void write_burst_reg( unsigned char addr,
-                      unsigned char* buffer,
-                      unsigned char count )
+void write_burst_reg( uint8_t addr, const uint8_t* buffer, uint8_t count )
 {  
-    unsigned char i;
+    uint8_t i;
 
     if( count > 0 ) {
         /* Wait for the Radio to be ready for next instruction. */
@@ -88,7 +143,7 @@ void write_burst_reg( unsigned char addr,
         }
         
         /* Send address + instruction. */
-        RF1AINSTRW = ( (addr | RF_REGWR ) << 8 ) + buffer[0];
+        RF1AINSTRW = ( ( addr | RF_REGWR ) << 8 ) + buffer[0];
 
         for( i = 1; i < count; i++ ) {
             RF1ADINB = buffer[i]; /* Send data. */
@@ -103,16 +158,15 @@ void write_burst_reg( unsigned char addr,
 }
 
 /* Send a command strobe to the radio. Includes workaround for RF1A7. */
-unsigned char strobe( unsigned char s )
+uint8_t strobe( uint8_t cmd )
 {
-    unsigned char status_byte;
-    unsigned int  gdo_state;
-    
+    uint8_t status_byte;
+    uint8_t gdo_state;
     
     status_byte = 0;
   
     /* Check for valid strobe command. */
-    if( ( s == 0xBD ) || ( ( s >= RF_SRES ) && ( s <= RF_SNOP ) ) ) {
+    if( ( cmd == 0xBD ) || ( ( cmd >= RF_SRES ) && ( cmd <= RF_SNOP ) ) ) {
         /* Clear the Status read flag. */
         RF1AIFCTL1 &= ~( RFSTATIFG );    
 
@@ -122,16 +176,16 @@ unsigned char strobe( unsigned char s )
         }
 
         /* Write the strobe instruction. */
-        if( ( s > RF_SRES ) && ( s < RF_SNOP ) ) {
+        if( ( cmd > RF_SRES ) && ( cmd < RF_SNOP ) ) {
             gdo_state = read_single_reg( IOCFG2 ); /* buffer IOCFG2 state */
             write_single_reg( IOCFG2, 0x29 );      /* chip-ready to GDO2 */
 
-            RF1AINSTRB = s;
+            RF1AINSTRB = cmd;
              
             if( ( RF1AIN & 0x04 ) == 0x04 ) {      /* chip at sleep mod */
-                if( ( s == RF_SXOFF ) ||
-                    ( s == RF_SPWD ) ||
-                    ( s == RF_SWOR ) ) {
+                if( ( cmd == RF_SXOFF ) ||
+                    ( cmd == RF_SPWD ) ||
+                    ( cmd == RF_SWOR ) ) {
                     
                 } else {
                     while( ( RF1AIN & 0x04 ) == 0x04 ) { /* chip-ready? */
@@ -150,7 +204,7 @@ unsigned char strobe( unsigned char s )
                 ;
             }
         } else { /* chip active mode (SRES)	*/
-            RF1AINSTRB = s; 	   
+            RF1AINSTRB = cmd; 	   
         }
         
         status_byte = RF1ASTATB;
@@ -166,66 +220,28 @@ void reset_radio_core( void )
     strobe( RF_SNOP ); /* Reset Radio Pointer. */
 }
 
-/* Write the minimum set of RF configuration register settings. */
-void write_rf_settings( rf_settings_t* rf_settings )
-{
-    write_single_reg( FSCTRL1,  rf_settings->fsctrl1 );
-    write_single_reg( FSCTRL0,  rf_settings->fsctrl0 );
-    write_single_reg( FREQ2,    rf_settings->freq2 );
-    write_single_reg( FREQ1,    rf_settings->freq1 );
-    write_single_reg( FREQ0,    rf_settings->freq0 );
-    write_single_reg( MDMCFG4,  rf_settings->mdmcfg4 );
-    write_single_reg( MDMCFG3,  rf_settings->mdmcfg3 );
-    write_single_reg( MDMCFG2,  rf_settings->mdmcfg2 );
-    write_single_reg( MDMCFG1,  rf_settings->mdmcfg1 );
-    write_single_reg( MDMCFG0,  rf_settings->mdmcfg0 );
-    write_single_reg( CHANNR,   rf_settings->channr );
-    write_single_reg( DEVIATN,  rf_settings->deviatn );
-    write_single_reg( FREND1,   rf_settings->frend1 );
-    write_single_reg( FREND0,   rf_settings->frend0 );
-    write_single_reg( MCSM0 ,   rf_settings->mcsm0 );
-    write_single_reg( FOCCFG,   rf_settings->foccfg );
-    write_single_reg( BSCFG,    rf_settings->bscfg );
-    write_single_reg( AGCCTRL2, rf_settings->agcctrl2 );
-    write_single_reg( AGCCTRL1, rf_settings->agcctrl1 );
-    write_single_reg( AGCCTRL0, rf_settings->agcctrl0 );
-    write_single_reg( FSCAL3,   rf_settings->fscal3 );
-    write_single_reg( FSCAL2,   rf_settings->fscal2 );
-    write_single_reg( FSCAL1,   rf_settings->fscal1 );
-    write_single_reg( FSCAL0,   rf_settings->fscal0 );
-    write_single_reg( FSTEST,   rf_settings->fstest );
-    write_single_reg( TEST2,    rf_settings->test2 );
-    write_single_reg( TEST1,    rf_settings->test1 );
-    write_single_reg( TEST0,    rf_settings->test0 );
-    write_single_reg( FIFOTHR,  rf_settings->fifothr );
-    write_single_reg( IOCFG2,   rf_settings->iocfg2 );
-    write_single_reg( IOCFG0,   rf_settings->iocfg0 );
-    write_single_reg( PKTCTRL1, rf_settings->pktctrl1 );
-    write_single_reg( PKTCTRL0, rf_settings->pktctrl0 );
-    write_single_reg( ADDR,     rf_settings->addr );
-    write_single_reg( PKTLEN,   rf_settings->pktlen );
-}
-
 /* Write data to power table. */
-void write_single_pa_table( unsigned char value )
+void write_single_pa_table( uint8_t value )
 {
     while( !( RF1AIFCTL1 & RFINSTRIFG ) ) {
         ;
     }
     
-    RF1AINSTRW = 0x3E00 + value;        /* PA Table single write. */
+    RF1AINSTRW = 0x3E00 + value;    /* PA Table single write. */
 
     while( !( RF1AIFCTL1 & RFINSTRIFG ) ) {
         ;
     }
     
-    RF1AINSTRB = RF_SNOP;               /* Reset PA_Table pointer. */
+    RF1AINSTRB = RF_SNOP;           /* Reset PA_Table pointer. */
 }
 
 /* Write to multiple locations in power table. */
-void write_burst_pa_table( unsigned char* buffer, unsigned char count )
+void write_burst_pa_table( const uint8_t* buffer, uint8_t count )
 {
-    volatile char i = 0; 
+    volatile uint8_t i;
+
+    i = 0;
 
     while( !( RF1AIFCTL1 & RFINSTRIFG ) ) {
         ;
