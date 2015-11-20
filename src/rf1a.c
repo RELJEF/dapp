@@ -7,18 +7,18 @@ const uint8_t rf1a_regs_config[ RF1A_REGS_CONF_SIZE ] =
     SMARTRF_IOCFG2,     /* IOCFG2: GDO2 signals on RF_RDYn */
     SMARTRF_IOCFG1,     /* IOCFG1: GDO1 signals on RSSI_VALID */
     SMARTRF_IOCFG0,     /* IOCFG0: GDO0 signals on PA power down signal to
-                           control RX/TX switch */
+                         * control RX/TX switch */
     SMARTRF_FIFOTHR,    /* FIFOTHR: RX/TX FIFO threshold: 33 bytes in TX, 32
-                           bytes in RX */
+                         * bytes in RX */
     SMARTRF_SYNC1,      /* SYNC1: High byte of sync word */
     SMARTRF_SYNC0,      /* SYNC0: Low byte of sync word */
     SMARTRF_PKTLEN,     /* PKTLEN: Packet length in fixed mode, maximum length
-                           in variable-length mode */
+                         * in variable-length mode */
     SMARTRF_PKTCTRL1,   /* PKTCTRL1: No status bytes appended to the packet */
     SMARTRF_PKTCTRL0,   /* PKTCTRL0: Fixed-Length Mode, No CRC */
     SMARTRF_ADDR,       /* ADDR: Address for packet filtration */
     SMARTRF_CHANNR,     /* CHANNR: 8-bit channel number,
-                           freq = base freq + CHANNR * channel spacing */
+                         * freq = base freq + CHANNR * channel spacing */
     SMARTRF_FSCTRL1,    /* FSCTRL1: Frequency Synthesizer Control */
     SMARTRF_FSCTRL0,    /* FSCTRL0: Frequency Synthesizer Control */
     SMARTRF_FREQ2,      /* FREQ2: Base frequency, high byte */
@@ -31,11 +31,11 @@ const uint8_t rf1a_regs_config[ RF1A_REGS_CONF_SIZE ] =
     SMARTRF_MDMCFG0,    /* MDMCFG0:                "                      " */
     SMARTRF_DEVIATN,    /* DEVIATN: Modem deviation setting */
     SMARTRF_MCSM2,      /* MCSM2: Main radio control state machine
-                           conf. : timeout for sync word search disabled */
+                         * conf. : timeout for sync word search disabled */
     SMARTRF_MCSM1,      /* MCSM1: CCA signals when RSSI below threshold, stay
-                           in RX after packet has been received */
+                         * in RX after packet has been received */
     SMARTRF_MCSM0,      /* MCSM0: Auto-calibrate when going from IDLE to RX
-                           or TX (or FSTXON ) */
+                         * or TX (or FSTXON ) */
     SMARTRF_FOCCFG,     /* FOCCFG: Frequency offset compensation conf. */
     SMARTRF_BSCFG,      /* BSCFG: Bit synchronization conf. */
     SMARTRF_AGCCTRL2,   /* AGCCTRL2: AGC Control */
@@ -43,8 +43,8 @@ const uint8_t rf1a_regs_config[ RF1A_REGS_CONF_SIZE ] =
     SMARTRF_AGCCTRL0,   /* AGCCTRL0:     " */
     SMARTRF_WOREVT1,    /* WOREVT1: High byte Event0 timeout */
     SMARTRF_WOREVT0,    /* WOREVT0: High byte Event0 timeout */
-    SMARTRF_WORCTRL,    /* WORCTL: Wave on radio control ****Feature
-                           unavailable in PG0.6**** */
+    SMARTRF_WORCTRL,    /* WORCTL: Wake on radio control ****Feature
+                         * unavailable in PG0.6**** */
     SMARTRF_FREND1,     /* FREND1: Front end RX conf. */
     SMARTRF_FREND0,     /* FREND0: Front end TX conf. */
     SMARTRF_FSCAL3,     /* FSCAL3: Frequency synthesizer calibration */
@@ -66,7 +66,6 @@ const uint8_t rf1a_regs_config[ RF1A_REGS_CONF_SIZE ] =
 uint8_t read_single_reg( uint8_t addr )
 {
     uint8_t data_out;
-
 
     /* Check for valid configuration register address, 0x3E refers to PATABLE */
     if( ( addr <= 0x2E ) || ( addr == 0x3E ) ) {
@@ -107,12 +106,12 @@ void read_burst_reg( uint8_t addr, uint8_t* buffer, uint8_t count )
                 ;
             }
             
-            /* Reads DOUT from Radio Core + clears RFDOUTIFG.
-               Also initiates auo-read for next DOUT byte. */
+            /* Reads DOUT from radio core + clears RFDOUTIFG.
+             * Also initiates auto-read for next DOUT byte. */
             buffer[i] = RF1ADOUT1B;
         }
         
-        /* Store the last DOUT from Radio Core. */
+        /* Store the last DOUT from radio core. */
         buffer[count - 1] = RF1ADOUT0B; 
     }
 }
@@ -177,33 +176,33 @@ uint8_t strobe( uint8_t cmd )
 
         /* Write the strobe instruction. */
         if( ( cmd > RF_SRES ) && ( cmd < RF_SNOP ) ) {
-            gdo_state = read_single_reg( IOCFG2 ); /* buffer IOCFG2 state */
-            write_single_reg( IOCFG2, 0x29 );      /* chip-ready to GDO2 */
+            gdo_state = read_single_reg( IOCFG2 ); /* Buffer IOCFG2 state */
+            write_single_reg( IOCFG2, 0x29 );      /* Chip-ready to GDO2 */
 
             RF1AINSTRB = cmd;
              
-            if( ( RF1AIN & 0x04 ) == 0x04 ) {      /* chip at sleep mod */
+            if( ( RF1AIN & 0x04 ) == 0x04 ) {      /* Chip at sleep mode */
                 if( ( cmd == RF_SXOFF ) ||
                     ( cmd == RF_SPWD ) ||
                     ( cmd == RF_SWOR ) ) {
                     
                 } else {
-                    while( ( RF1AIN & 0x04 ) == 0x04 ) { /* chip-ready? */
+                    while( ( RF1AIN & 0x04 ) == 0x04 ) { /* Chip-ready? */
                         ;
                     }
                     
                     /* Delay for ~810usec at 1.05MHz CPU clock,
-                       see erratum RF1A7. */
-                    __delay_cycles( 850 );	            
+                     * see erratum RF1A7. */
+                    __delay_cycles( 850 );
                 }
             }
             
-            write_single_reg( IOCFG2, gdo_state ); /* restore IOCFG2 setting */
+            write_single_reg( IOCFG2, gdo_state ); /* Restore IOCFG2 setting */
 
             while( !( RF1AIFCTL1 & RFSTATIFG ) ) {
                 ;
             }
-        } else { /* chip active mode (SRES)	*/
+        } else { /* Chip active mode (SRES) */
             RF1AINSTRB = cmd; 	   
         }
         
@@ -216,8 +215,8 @@ uint8_t strobe( uint8_t cmd )
 /* Reset the radio core using RF_SRES command. */
 void reset_radio_core( void )
 {
-    strobe( RF_SRES ); /* Reset the Radio Core. */
-    strobe( RF_SNOP ); /* Reset Radio Pointer. */
+    strobe( RF_SRES ); /* Reset the radio core. */
+    strobe( RF_SNOP ); /* Reset radio pointer. */
 }
 
 /* Write data to power table. */
