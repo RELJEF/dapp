@@ -12,7 +12,7 @@
 static inline void init_ports( void )
 {
     P1OUT = 0x00;
-    P1DIR = 0x01; /* P1.0 - LED out, P1.1 - button in */
+    P1DIR = 0x01; /* P1.0 - LED output, P1.1 - button input */
     P2OUT = 0x00;
     P2DIR = 0x00;
     P3OUT = 0x00;
@@ -81,17 +81,7 @@ __interrupt( UNMI_VECTOR ) void unmi_isr( void )
 
 __interrupt( PORT1_VECTOR ) void port1_isr( void )
 {
-    switch( P1IV ) {
-        case P1IV_NONE:   break;
-        case P1IV_P1IFG0: break;
-        case P1IV_P1IFG1:
-            LED_TOGGLE;
-            break;
-        case P1IV_P1IFG2: break;
-        case P1IV_P1IFG3: break;
-        case P1IV_P1IFG4: break;
-        case P1IV_P1IFG5: break;
-        case P1IV_P1IFG6: break;
-        case P1IV_P1IFG7: break;
+    if( P1IV == P1IV_P1IFG1 ) { /* Change on P1.1 = button press. */
+        LED_TOGGLE;
     }
 }
