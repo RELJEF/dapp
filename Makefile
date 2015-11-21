@@ -8,7 +8,7 @@ OBJDIR=obj
 vpath %.c src
 vpath %.h src
 
-OBJECTS = $(addprefix $(OBJDIR)/, main.o rf.o rf1a.o misc.o)
+OBJECTS = $(addprefix $(OBJDIR)/, main.o rf.o rf1a.o misc.o pmm.o)
 
 DEVICE  = cc430f5137
 CC      = $(GCC_DIR)/msp430-elf-gcc
@@ -20,7 +20,7 @@ LFLAGS = -L $(SUPPORT_FILE_DIRECTORY) -T $(DEVICE).ld
 all: $(OBJECTS)
 	$(CC) $(CFLAGS) $(LFLAGS) $(OBJECTS) -o $(DEVICE).out
 
-$(OBJDIR) obj/%.o : %.c rf.h rf1a.h misc.h main.h smartrf.h
+$(OBJDIR) obj/%.o : %.c rf.h rf1a.h misc.h main.h smartrf.h pmm.h
 	@mkdir -p $(OBJDIR)
 	@echo $<
 	$(CC) $(CFLAGS) -c $< -o $@

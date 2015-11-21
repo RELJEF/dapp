@@ -9,6 +9,7 @@
 #include "misc.h"
 #include "smartrf.h"
 #include "rf1a.h"
+#include "pmm.h"
 #include "rf.h"
 
 
