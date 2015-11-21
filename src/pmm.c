@@ -1,28 +1,28 @@
 
 #include "main.h"
 
-#define _HAL_PMM_DISABLE_SVML_
-#define _HAL_PMM_DISABLE_SVSL_
-#define _HAL_PMM_DISABLE_FULL_PERFORMANCE_
+#define _PMM_DISABLE_SVML_
+#define _PMM_DISABLE_SVSL_
+#define _PMM_DISABLE_FULL_PERFORMANCE_
 
 
-#ifdef _HAL_PMM_DISABLE_SVML_
-#define _HAL_PMM_SVMLE SVMLE
+#ifdef _PMM_DISABLE_SVML_
+#define _PMM_SVMLE SVMLE
 #else
-#define _HAL_PMM_SVMLE 0
-#endif /* _HAL_PMM_DISABLE_SVML_ */
+#define _PMM_SVMLE 0
+#endif /* _PMM_DISABLE_SVML_ */
 
-#ifdef _HAL_PMM_DISABLE_SVSL_
-#define _HAL_PMM_SVSLE SVSLE
+#ifdef _PMM_DISABLE_SVSL_
+#define _PMM_SVSLE SVSLE
 #else
-#define _HAL_PMM_SVSLE 0
-#endif /* _HAL_PMM_DISABLE_SVSL_ */
+#define _PMM_SVSLE 0
+#endif /* _PMM_DISABLE_SVSL_ */
 
-#ifdef _HAL_PMM_DISABLE_FULL_PERFORMANCE_
-#define _HAL_PMM_SVSFP SVSLFP
+#ifdef _PMM_DISABLE_FULL_PERFORMANCE_
+#define _PMM_SVSFP SVSLFP
 #else
-#define _HAL_PMM_SVSFP 0
-#endif /* _HAL_PMM_DISABLE_FULL_PERFORMANCE_ */
+#define _PMM_SVSFP 0
+#endif /* _PMM_DISABLE_FULL_PERFORMANCE_ */
 
 
 
@@ -50,7 +50,7 @@ static uint8_t set_vcore_up( uint8_t level )
     }
 
     /* Disable full-performance mode to save energy */
-    SVSMHCTL &= ~_HAL_PMM_SVSFP ;
+    SVSMHCTL &= ~_PMM_SVSFP ;
 
     /* Check if a VCore increase is possible */
     if( ( PMMIFG & SVMHIFG ) == SVMHIFG ) { /* Vcc is too low */
@@ -108,9 +108,7 @@ static uint8_t set_vcore_up( uint8_t level )
 
     /* Disable SVS/SVM Low
      * Disable full-performance mode to save energy */
-    SVSMLCTL &= ~( _HAL_PMM_DISABLE_SVSL_ +
-                   _HAL_PMM_DISABLE_SVML_ +
-                   _HAL_PMM_SVSFP );
+    SVSMLCTL &= ~( _PMM_DISABLE_SVSL_ + _PMM_DISABLE_SVML_ + _PMM_SVSFP );
 
     /* Clear all flags */
     PMMIFG &= ~( SVMHVLRIFG | SVMHIFG | SVSMHDLYIFG | SVMLVLRIFG | SVMLIFG |
@@ -160,12 +158,10 @@ static uint8_t set_vcore_down( uint8_t level )
     }
 
     /* Disable full-performance mode to save energy */
-    SVSMHCTL &= ~_HAL_PMM_SVSFP;
+    SVSMHCTL &= ~_PMM_SVSFP;
     /* Disable SVS/SVM Low */
     /* Disable full-performance mode to save energy */
-    SVSMLCTL &= ~( _HAL_PMM_DISABLE_SVSL_ +
-                   _HAL_PMM_DISABLE_SVML_ +
-                   _HAL_PMM_SVSFP );
+    SVSMLCTL &= ~( _PMM_DISABLE_SVSL_ + _PMM_DISABLE_SVML_ + _PMM_SVSFP );
 
     /* Clear all flags */
     PMMIFG &= ~( SVMHVLRIFG | SVMHIFG | SVSMHDLYIFG | SVMLVLRIFG | SVMLIFG |
