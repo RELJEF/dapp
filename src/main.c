@@ -1,13 +1,13 @@
 
 #include "main.h"
 
-
 #define LED_ON      P1OUT |= 0x01;      P1DIR |= 0x01;
 #define LED_OFF     P1OUT &= (~0x01);   P1DIR |= 0x01;
 #define LED_TOGGLE  P1OUT ^= 0x01;      P1DIR |= 0x01;
 #define LED_CHECK   (P1IN & 0x01)
 
 
+static volatile uint8_t button_pressed = 0;
 
 static inline void init_ports( void )
 {
@@ -52,12 +52,23 @@ int main( void )
     init_chip( );
   
     while( 1 ) {
+        _BIS_SR( LPM3_bits + GIE );
         _NOP( );
+
+        if( button_pressed ) {
+            LED_TOGGLE;
+            button_pressed = 0;
+            P1IFG = 0;
+
+            __delay_cycles( 100000 );
+
+            P1IE |= BIT1;   /* Enable button press interrupt. */
+        }
     }
 
     return 0;
 }
- 
+
 __interrupt( UNMI_VECTOR ) void unmi_isr( void )
 {
     if( UCSCTL7 & XT2OFFG ) {    /* XT2 oscillator fault flag */
@@ -81,7 +92,9 @@ __interrupt( UNMI_VECTOR ) void unmi_isr( void )
 
 __interrupt( PORT1_VECTOR ) void port1_isr( void )
 {
-    if( P1IV == P1IV_P1IFG1 ) { /* Change on P1.1 = button press. */
-        LED_TOGGLE;
+    if( P1IV == P1IV_P1IFG1 ) {     /* Change on P1.1 = button press. */
+        P1IE = 0;                   /* Debounce by disabling button. */
+        button_pressed = 1;
+        _BIC_SR_IRQ( LPM3_bits );   /* Exit active mode. */
     }
 }
