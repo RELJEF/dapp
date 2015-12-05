@@ -18,10 +18,10 @@ static uint8_t tx_buffer[PACKET_LEN];
 static uint8_t radio_state;
 static uint8_t rx_buffer_len;
 
+
 void init_rf( void )
 {
     radio_state = RADIO_STATE_IDLE;
-    rx_buffer_len = 0;
 
     /* Increase PMMCOREV level to 2 for proper radio operation */
     set_vcore( 2 );
@@ -77,7 +77,7 @@ void receive_off( void )
     strobe( RF_SFRX );
 }
 
-uint8_t is_radio_idle( void )
+bool_t is_radio_idle( void )
 {
     return ( radio_state == RADIO_STATE_IDLE );
 }
