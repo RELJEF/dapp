@@ -11,7 +11,7 @@ int main( void )
     //receive_on( );
   
     while( 1 ) {
-        _BIS_SR( LPM3_bits + GIE ); /* Enter LPM3 mode, interrupts enabled */
+        _BIS_SR( LPM3_bits + GIE ); /* Enter LPM3 mode, interrupts enabled. */
         _NOP( );
 
         if( button_pressed ) {
@@ -32,6 +32,6 @@ __interrupt( PORT1_VECTOR ) void port1_isr( void )
     if( P1IV == P1IV_P1IFG1 ) {     /* Change on P1.1 = button press. */
         P1IE = 0;                   /* Debounce by disabling button. */
         button_pressed = TRUE;
-        _BIC_SR_IRQ( LPM3_bits );   /* Exit active mode. */
+        _BIC_SR_IRQ( LPM3_bits );   /* Exit LPM3 mode. */
     }
 }
