@@ -27,6 +27,17 @@ static inline void init_button_led( void )
     P1DIR |= BIT0;
 }
 
+static inline void init_timer1( void )
+{
+    TA1CTL = TACLR;                 /* Timer1_A clear */
+    TA1CCTL0 = CCIE;                /* Capture/compare 0 interrupt enable */
+#if 0
+    TA1CCR0 = 0x0004;               /* 32768 Hz / 4 = 8000 Hz */
+#endif
+    TA1CCR0 = 0x4000;               /* 2 Hz for testing */
+    TA1CTL = TASSEL0 | ID_0 | MC_1; /* Clock: ACLK; divider: 0; mode: up */
+}
+
 void board_init( void )
 {
     _BIC_SR( GIE ); /* Disable interrupts during initialization. */
@@ -35,7 +46,17 @@ void board_init( void )
 
     init_ports( );
     init_button_led( );
+    init_timer1( );
     init_rf( );
 
     _BIS_SR( GIE ); /* Enable interrupts after initialization. */
+}
+
+__interrupt( TIMER1_A0_VECTOR ) void timer1_a0_cc_isr( void )
+{
+    TA1CCTL0 &= ~CCIFG; /* Clear interrupt flag */
+
+    /* Start ADC */
+
+    LED_TOGGLE;
 }
