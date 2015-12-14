@@ -9,5 +9,6 @@
 
 
 void board_init( void );
+void test_adc12( void );
 
 #endif /* _BOARD_H_ */

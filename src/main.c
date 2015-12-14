@@ -7,15 +7,14 @@ static volatile bool_t button_pressed = FALSE;
 int main( void )
 {
     board_init( );
-
-    //receive_on( );
   
     while( 1 ) {
-        _BIS_SR( LPM3_bits + GIE ); /* Enter LPM3 mode, interrupts enabled. */
+        _BIS_SR( LPM3_bits | GIE ); /* Enter LPM3 mode, interrupts enabled. */
         _NOP( );
 
         if( button_pressed ) {
-            LED_TOGGLE;
+            //LED_TOGGLE;
+            test_adc12( );
 
             button_pressed = FALSE;
             P1IFG = 0;
